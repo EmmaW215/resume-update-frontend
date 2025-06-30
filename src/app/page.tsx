@@ -70,7 +70,7 @@ interface ComparisonResponse {
     setError("");
 
     try {
-      const res = await fetch("https://resume-matcher-backend-f7nx.onrender.com/api/compare", {
+      const res = await fetch("https://resume-matcher-backend-rrrw.onrender.com/api/compare", {
         method: "POST",
         body: formData,
       });
