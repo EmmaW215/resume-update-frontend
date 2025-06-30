@@ -9,7 +9,16 @@ export default function Home() {
   const [error, setError] = useState("");
   const [showDemo, setShowDemo] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  
   const inputRef = useRef<HTMLInputElement>(null);
+/*
+  //const [jobUrl, setJobUrl] = useState('');
+  //const [resumeFile, setResumeFile] = useState<File | null>(null);
+  */
+
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<any>(null);  // For output
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -42,19 +51,21 @@ export default function Home() {
     inputRef.current?.click();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (!jobUrl || !resumeFile) {
-      setError("Please provide both a job URL and a resume file.");
-      return;
-    }
-    setIsSubmitting(true);
+  /*
+  //  const handleSubmit = async (e: React.FormEvent) => {
+   //  e.preventDefault();
+   //  setError("");
+   //  if (!jobUrl || !resumeFile) {
+   //    setError("Please provide both a job URL and a resume file.");
+   //    return;
+   //  }
+   //  setIsSubmitting(true);
     // 模拟API请求，展示Demo
-    setTimeout(() => {
-      setShowDemo(true);
-      setIsSubmitting(false);
-    }, 1000);
+   //  setTimeout(() => {
+   //    setShowDemo(true);
+    //   setIsSubmitting(false);
+   //  }, 1000);
+
     // 实际API请求可替换下方注释
     // const formData = new FormData();
     // formData.append("jobUrl", jobUrl);
@@ -72,7 +83,46 @@ export default function Home() {
     //   setIsSubmitting(false);
     // }
   };
+*/
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!jobUrl || !resumeFile) {
+      alert("Please provide both job URL and resume.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("job_url", jobUrl);
+    formData.append("resume", resumeFile);
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("https://your-backend.onrender.com/api/compare", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        alert("Backend error: " + errorText);
+        return;
+      }
+
+      const data = await response.json();
+      setResponse(data);
+
+    } catch (error) {
+      console.error("❌ Fetch error:", error);
+      alert("Fetch error: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4 relative"
