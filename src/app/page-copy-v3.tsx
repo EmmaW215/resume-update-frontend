@@ -70,25 +70,35 @@ export default function Home() {
 
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-matcher-backend-rrrw.onrender.com';
-      const res = await fetch(`${BACKEND_URL}/api/compare`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Backend error: ${errorText}`);
+      
+      async function handleSubmit(event: React.FormEvent) {
+        event.preventDefault();
+        setLoading(true);
+        setError(null);
+        const formData = new FormData(event.target as HTMLFormElement);
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/compare`, {
+            method: 'POST',
+            body: formData,
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch comparison');
+          }
+          const data = await response.json();
+          setComparisonResult(data);
+        } catch (err: any) {
+          if (err.message.includes('xAI API error: 403')) {
+            setError('Unable to process due to insufficient xAI API credits. Please contact support.');
+          } else if (err.message.includes('Failed to fetch job posting')) {
+            setError('The job posting URL is not accessible. Try a LinkedIn or company career page URL.');
+          } else {
+            setError(err.message);
+          }
+        } finally {
+          setLoading(false);
+        }
       }
-
-      const data: ComparisonResponse = await res.json();
-      setResponse(data);
-    } catch (error) {
-      console.error('❌ Fetch error:', error);
-      setError(`Failed to fetch comparison: ${(error as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Parse resume_summary for preview and comparison table
   const parseResumeSummary = (resumeSummary: string) => {
