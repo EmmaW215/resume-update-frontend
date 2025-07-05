@@ -81,13 +81,14 @@ export default function Home() {
       }
       const data = await response.json();
       setResponse(data);
-    } catch (err: any) {
-      if (err.message.includes('xAI API error: 403')) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      if (errorMessage.includes('xAI API error: 403')) {
         setError('Unable to process due to insufficient xAI API credits. Please contact support.');
-      } else if (err.message.includes('Failed to fetch job posting')) {
+      } else if (errorMessage.includes('Failed to fetch job posting')) {
         setError('The job posting URL is not accessible. Try a LinkedIn or company career page URL.');
       } else {
-        setError(err.message);
+        setError(errorMessage);
       }
     } finally {
       setLoading(false);
