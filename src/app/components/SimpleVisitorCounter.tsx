@@ -9,8 +9,12 @@ interface SimpleVisitorCounterProps {
 export default function SimpleVisitorCounter({ className = '' }: SimpleVisitorCounterProps) {
   const [visitorCount, setVisitorCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isClient, setIsClient] = useState<boolean>(false);
 
   useEffect(() => {
+    // 标记组件已在客户端运行
+    setIsClient(true);
+    
     // 使用localStorage来模拟访客计数
     const updateVisitorCount = () => {
       try {
@@ -45,6 +49,21 @@ export default function SimpleVisitorCounter({ className = '' }: SimpleVisitorCo
     }
     return num.toString();
   };
+
+  // 在服务器端渲染时显示加载状态
+  if (!isClient) {
+    return (
+      <div className={`flex items-center justify-center space-x-2 ${className}`}>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm text-gray-600 font-medium">Visitors:</span>
+        </div>
+        <div className="text-lg font-bold text-blue-600 animate-pulse">
+          ...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-center justify-center space-x-2 ${className}`}>
