@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import VisitorCounter from './components/VisitorCounter';
 
 interface ComparisonResponse {
   job_summary: string;
@@ -70,42 +71,34 @@ export default function Home() {
 
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-matcher-backend-rrrw.onrender.com';
-      
-      async function handleSubmit(event: React.FormEvent) {
-        event.preventDefault();
-        setLoading(true);
-        setError(null);
-        const formData = new FormData(event.target as HTMLFormElement);
-        try {
-          const response = await fetch(`${BACKEND_URL}/api/compare`, {
-            method: 'POST',
-            body: formData,
-          });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch comparison');
-          }
-          const data = await response.json();
-          setComparisonResult(data);
-        } catch (err: any) {
-          if (err.message.includes('xAI API error: 403')) {
-            setError('Unable to process due to insufficient xAI API credits. Please contact support.');
-          } else if (err.message.includes('Failed to fetch job posting')) {
-            setError('The job posting URL is not accessible. Try a LinkedIn or company career page URL.');
-          } else {
-            setError(err.message);
-          }
-        } finally {
-          setLoading(false);
-        }
+      const response = await fetch(`${BACKEND_URL}/api/compare`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch comparison');
       }
+      const data = await response.json();
+      setResponse(data);
+    } catch (err: any) {
+      if (err.message.includes('xAI API error: 403')) {
+        setError('Unable to process due to insufficient xAI API credits. Please contact support.');
+      } else if (err.message.includes('Failed to fetch job posting')) {
+        setError('The job posting URL is not accessible. Try a LinkedIn or company career page URL.');
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
     }
+  };
 
   // Parse resume_summary for preview and comparison table
   const parseResumeSummary = (resumeSummary: string) => {
     const [summaryText, experienceText, tableText] = resumeSummary.split('Comparison Table:\n');
     const summaryMatch = summaryText.match(/Resume Summary:\n([\s\S]*?)\n\nRelevant Work Experience:/);
-    const experienceMatch = experienceText.match(/Relevant Work Experience:\n([\s\S]*)/);
+    const experienceMatch = experienceText?.match(/Relevant Work Experience:\n([\s\S]*)/) || null;
     const tableRows = tableText
       ? tableText.split('\n').map(line => {
           const match = line.match(/- (.+?): (\w+(?:-\w+)?) \((.+?)\)/);
@@ -129,6 +122,22 @@ export default function Home() {
       }}
     >
       <div className="absolute inset-0 bg-white" style={{ opacity: 0.7 }} aria-hidden="true"></div>
+      
+      {/* Visitor Counter */}
+      <div className="absolute top-4 right-4 z-20">
+        <VisitorCounter />
+      </div>
+      
+      {/* Admin Link */}
+      <div className="absolute top-4 left-4 z-20">
+        <a
+          href="/admin/visitor-stats"
+          className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          Admin
+        </a>
+      </div>
+      
       <div className="w-full flex flex-col items-center justify-center bg-white/80 rounded-2xl shadow-lg p-4 sm:p-8 max-w-4xl mx-auto relative z-10">
         <h1 className="text-4xl sm:text-5xl font-bold text-blue-700 mb-2 text-center drop-shadow-md">
           MatchWise
