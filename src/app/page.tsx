@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import VisitorCounter from './components/VisitorCounter';
+import SimpleVisitorCounter from './components/SimpleVisitorCounter';
 
 interface ComparisonResponse {
   job_summary: string;
@@ -125,7 +125,7 @@ export default function Home() {
       
       {/* Visitor Counter - Updated */}
       <div className="absolute top-4 right-4 z-20">
-        <VisitorCounter />
+        <SimpleVisitorCounter />
       </div>
       
       {/* Admin Link */}
