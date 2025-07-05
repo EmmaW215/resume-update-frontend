@@ -7,22 +7,27 @@ interface SimpleVisitorCounterProps {
 }
 
 export default function SimpleVisitorCounter({ className = '' }: SimpleVisitorCounterProps) {
-  const [mounted, setMounted] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number>(0);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    // 确保只在客户端运行
     setMounted(true);
     
-    // 只在客户端运行
-    try {
-      const currentCount = parseInt(localStorage.getItem('visitorCount') || '0');
-      const newCount = currentCount + 1;
-      localStorage.setItem('visitorCount', newCount.toString());
-      setVisitorCount(newCount);
-    } catch (err) {
-      console.error('Visitor counter error:', err);
-      setVisitorCount(0);
-    }
+    // 延迟执行localStorage操作
+    const timer = setTimeout(() => {
+      try {
+        const currentCount = parseInt(localStorage.getItem('visitorCount') || '0');
+        const newCount = currentCount + 1;
+        localStorage.setItem('visitorCount', newCount.toString());
+        setVisitorCount(newCount);
+      } catch (err) {
+        console.error('Visitor counter error:', err);
+        setVisitorCount(0);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // 格式化数字显示
@@ -37,7 +42,17 @@ export default function SimpleVisitorCounter({ className = '' }: SimpleVisitorCo
 
   // 在客户端挂载前不渲染任何内容
   if (!mounted) {
-    return null;
+    return (
+      <div className={`flex items-center justify-center space-x-2 ${className}`}>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm text-gray-600 font-medium">Visitors:</span>
+        </div>
+        <div className="text-lg font-bold text-blue-600 animate-pulse">
+          ...
+        </div>
+      </div>
+    );
   }
 
   return (
