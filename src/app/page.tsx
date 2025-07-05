@@ -204,55 +204,7 @@ export default function Home() {
           </button>
         </form>
 
-        {(loading || response) && (
-          <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Preview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Resume Summary Preview</span>
-                </div>
-                {loading && !response && (
-                  <p className="text-gray-500 ml-5">Extracting resume summary...</p>
-                )}
-                {response && (
-                  <pre className="text-gray-700 text-base ml-5 p-4 bg-gray-50 border border-gray-200 rounded-lg whitespace-pre-wrap">
-                    {parseResumeSummary(response.resume_summary).resumeSummaryText}
-                  </pre>
-                )}
-              </div>
-              <div>
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Resume Work Experience Preview</span>
-                </div>
-                {loading && !response && (
-                  <p className="text-gray-500 ml-5">Extracting work experience...</p>
-                )}
-                {response && (
-                  <pre className="text-gray-700 text-base ml-5 p-4 bg-gray-50 border border-gray-200 rounded-lg whitespace-pre-wrap">
-                    {parseResumeSummary(response.resume_summary).resumeExperienceText}
-                  </pre>
-                )}
-              </div>
-              <div className="md:col-span-2">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Job Requirement Summary Preview</span>
-                </div>
-                {loading && !response && (
-                  <p className="text-gray-500 ml-5">Extracting job requirements...</p>
-                )}
-                {response && (
-                  <pre className="text-gray-700 text-base ml-5 p-4 bg-gray-50 border border-gray-200 rounded-lg whitespace-pre-wrap">
-                    {response.job_summary.replace('Job Requirement Summary:\n', '')}
-                  </pre>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {response && (
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
