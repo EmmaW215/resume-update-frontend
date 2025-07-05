@@ -123,7 +123,7 @@ export default function Home() {
     >
       <div className="absolute inset-0 bg-white" style={{ opacity: 0.7 }} aria-hidden="true"></div>
       
-      {/* Visitor Counter */}
+      {/* Visitor Counter - Updated */}
       <div className="absolute top-4 right-4 z-20">
         <VisitorCounter />
       </div>
