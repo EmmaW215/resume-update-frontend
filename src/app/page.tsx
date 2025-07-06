@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import SimpleVisitorCounter from './components/SimpleVisitorCounter';
+import ReactMarkdown from 'react-markdown';
 
 interface ComparisonResponse {
   job_summary: string;
@@ -204,8 +205,6 @@ export default function Home() {
           </button>
         </form>
 
-
-
         {response && (
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
@@ -226,24 +225,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-gray-800">Resume - Job Posting Comparison</span>
               </div>
               <div className="ml-5">
-                <table className="w-full border-collapse border border-gray-200">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-200 p-2 text-left">Category</th>
-                      <th className="border border-gray-200 p-2 text-left">Match</th>
-                      <th className="border border-gray-200 p-2 text-left">Comments</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parseResumeSummary(response.resume_summary).comparisonTable.map((row, index) => (
-                      <tr key={index}>
-                        <td className="border border-gray-200 p-2">{row.category}</td>
-                        <td className="border border-gray-200 p-2">{row.match}</td>
-                        <td className="border border-gray-200 p-2">{row.comments}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <ReactMarkdown>{response.resume_summary}</ReactMarkdown>
               </div>
             </div>
 
