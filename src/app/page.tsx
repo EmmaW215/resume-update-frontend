@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -94,24 +95,6 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Parse resume_summary for preview and comparison table
-  const parseResumeSummary = (resumeSummary: string) => {
-    const [summaryText, experienceText, tableText] = resumeSummary.split('Comparison Table:\n');
-    const summaryMatch = summaryText.match(/Resume Summary:\n([\s\S]*?)\n\nRelevant Work Experience:/);
-    const experienceMatch = experienceText?.match(/Relevant Work Experience:\n([\s\S]*)/) || null;
-    const tableRows = tableText
-      ? tableText.split('\n').map(line => {
-          const match = line.match(/- (.+?): (\w+(?:-\w+)?) \((.+?)\)/);
-          return match ? { category: match[1], match: match[2], comments: match[3] } : null;
-        }).filter(row => row !== null)
-      : [];
-    return {
-      resumeSummaryText: summaryMatch ? summaryMatch[1].trim() : 'No resume summary available.',
-      resumeExperienceText: experienceMatch ? experienceMatch[1].trim() : 'No work experience available.',
-      comparisonTable: tableRows as { category: string; match: string; comments: string }[]
-    };
   };
 
   return (
