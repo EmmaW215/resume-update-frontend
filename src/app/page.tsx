@@ -3,7 +3,7 @@
 
 import React, { useState, useRef } from 'react';
 import SimpleVisitorCounter from './components/SimpleVisitorCounter';
-import ReactMarkdown from 'react-markdown';
+
 
 interface ComparisonResponse {
   job_summary: string;
@@ -15,7 +15,7 @@ interface ComparisonResponse {
 }
 
 export default function Home() {
-  const [jobUrl, setJobUrl] = useState('');
+  const [jobText, setJobText] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -58,13 +58,13 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!jobUrl || !resumeFile) {
-      alert('Please provide both job URL and resume.');
+    if (!jobText || !resumeFile) {
+      alert('Please provide both job description and resume.');
       return;
     }
 
     const formData = new FormData();
-    formData.append('job_url', jobUrl);
+    formData.append('job_text', jobText); // 改为 job_text
     formData.append('resume', resumeFile);
 
     setLoading(true);
@@ -139,16 +139,16 @@ export default function Home() {
           onSubmit={handleSubmit}
         >
           <div>
-            <label htmlFor="jobUrl" className="block text-sm font-semibold font-medium text-gray-700 mb-1">
-              Job Posting URL
+            <label htmlFor="jobText" className="block text-sm font-semibold font-medium text-gray-700 mb-1">
+              Job Description
             </label>
-            <input
-              id="jobUrl"
-              type="url"
+            <textarea
+              id="jobText"
               required
-              value={jobUrl}
-              onChange={(e) => setJobUrl(e.target.value)}
-              placeholder="https://example.com/job-posting"
+              value={jobText}
+              onChange={(e) => setJobText(e.target.value)}
+              placeholder="Please paste the full job description here"
+              rows={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -198,7 +198,9 @@ export default function Home() {
                 <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">Job Requirement Summary</span>
               </div>
-              <p className="text-gray-700 text-base ml-5">{response.job_summary || 'No job summary available.'}</p>
+              <div className="ml-5"
+                dangerouslySetInnerHTML={{ __html: response.job_summary || 'No job summary available.' }}
+              />
             </div>
 
             {/* Resume - Job Posting Comparison */}
@@ -208,7 +210,9 @@ export default function Home() {
                 <span className="text-lg font-semibold text-gray-800">Resume - Job Posting Comparison</span>
               </div>
               <div className="ml-5">
-                <ReactMarkdown>{response.resume_summary}</ReactMarkdown>
+                   <div className="resume-table-html"
+                     dangerouslySetInnerHTML={{ __html: response.resume_summary }}
+                   />
               </div>
             </div>
 
@@ -235,7 +239,9 @@ export default function Home() {
                 <div className="w-1.5 h-7 bg-purple-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">Tailored Resume Summary</span>
               </div>
-              <p className="text-gray-700 text-base ml-5">{response.tailored_resume_summary || 'No tailored resume summary available.'}</p>
+              <div className="ml-5"
+                dangerouslySetInnerHTML={{ __html: response.tailored_resume_summary || 'No tailored resume summary available.' }}
+              />
             </div>
 
             {/* Tailored Resume Work Experience */}
@@ -244,15 +250,9 @@ export default function Home() {
                 <div className="w-1.5 h-7 bg-orange-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">Tailored Resume Work Experience</span>
               </div>
-              <ul className="list-disc list-inside text-gray-700 text-base ml-5 space-y-1">
-                {response.tailored_work_experience && response.tailored_work_experience.length > 0 ? (
-                  response.tailored_work_experience.map((item: string, index: number) => (
-                    <li key={index} dangerouslySetInnerHTML={{ __html: item }}></li>
-                  ))
-                ) : (
-                  <li>No tailored work experience provided.</li>
-                )}
-              </ul>
+              <div className="ml-5"
+                dangerouslySetInnerHTML={{ __html: response.tailored_work_experience || '<ul><li>No tailored work experience provided.</li></ul>' }}
+              />
             </div>
 
             {/* Cover Letter */}
@@ -261,9 +261,9 @@ export default function Home() {
                 <div className="w-1.5 h-7 bg-teal-500 rounded mr-3"></div>
                 <span className="text-lg font-semibold text-gray-800">Cover Letter</span>
               </div>
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 ml-5">
-                <p className="text-gray-700 text-base whitespace-pre-wrap">{response.cover_letter || 'No cover letter available.'}</p>
-              </div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 ml-5"
+                dangerouslySetInnerHTML={{ __html: response.cover_letter || 'No cover letter available.' }}
+              />
             </div>
           </div>
         )}
