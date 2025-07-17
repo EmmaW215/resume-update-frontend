@@ -26,6 +26,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<ComparisonResponse | null>(null);
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
+  const [selectedPriceId, setSelectedPriceId] = useState('price_2dollar_id');
+  // 你需要把 price_2dollar_id, price_6dollar_id, price_15dollar_id 换成你 Stripe 后台实际的 price_id
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,12 +89,14 @@ export default function Home() {
     e.preventDefault();
 
     if (user && trialUsed) {
-      alert('You have used your free trial. Please upgrade to continue using MatchWise!');
+      setResponse(null); // 关键：清空分析结果
+      alert('You have used your free trial. Please sign in and upgrade to continue using MatchWise!');
       return;
     }
     if (!user) {
       const trialUsedLocal = localStorage.getItem('trialUsed');
       if (trialUsedLocal === 'true') {
+        setResponse(null); // 关键：清空分析结果
         alert('You have used your free trial. Please sign in to continue using MatchWise for more results!');
         return;
       }
@@ -161,16 +167,37 @@ export default function Home() {
 
   const stripePromise = loadStripe('pk_test_51RlrH6CznoMxD717T9LzmtmVSbRwiKiKM1XXIEHFHbbhTM9WXumjxpvkWkwWDfsumqHt1A6mdaf2Be7Xisbfs7xQ005PuaKG2J');
 
-  async function handleUpgrade(priceId: string) {
+  async function handleUpgradeOneTime() {
+    if (!user) {
+      alert('Please sign in before upgrading.');
+      return;
+    }
     const res = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ uid: user.uid, price_id: priceId })
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsdUCznoMxD717tAkMoRd9', mode: 'payment' })
     });
     const data = await res.json();
     if (data.checkout_url) {
-      const stripe = await stripePromise;
-      window.location.href = data.checkout_url;
+      window.open(data.checkout_url, '_blank'); // 新标签页打开
+    } else {
+      alert('Failed to create checkout session');
+    }
+  }
+
+  async function handleUpgradeSubscription() {
+    if (!user) {
+      alert('Please sign in before upgrading.');
+      return;
+    }
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsgyCznoMxD7176oiZ540Z', mode: 'subscription' })
+    });
+    const data = await res.json();
+    if (data.checkout_url) {
+      window.open(data.checkout_url, '_blank'); // 新标签页打开
     } else {
       alert('Failed to create checkout session');
     }
@@ -198,7 +225,6 @@ export default function Home() {
           </button>
         </div>
       )}
-       
 
       <div
         className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4 relative"
@@ -282,6 +308,7 @@ export default function Home() {
                 {resumeFile && <span className="text-green-600 text-sm mt-2">{resumeFile.name}</span>}
               </div>
             </div>
+
             {error && <div className="text-red-500 text-sm">{error}</div>}
             {loading && <div className="text-blue-600 text-sm text-center">Processing your request...</div>}
             <button
@@ -291,20 +318,20 @@ export default function Home() {
             >
               {loading ? 'Generating...' : 'Generate Comparison'}
             </button>
-
-            {user && trialUsed && (
-              <button
-              onClick={() => handleUpgrade('price_1RlsdUCznoMxD717tAkMoRd9')}
-              className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
-              >
-              Upgrade for $2
-              </button>
-            )}
-
           </form>
+          
+          
+          {user && trialUsed && (
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+            >
+              Upgrade to continue using MatchWise
+            </button>
+          )}
 
-          {response && (
-            <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
+          {(response && (!user && !localStorage.getItem('trialUsed') || (user && !trialUsed))) && (
+            <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
 
               {/* Job Requirement Summary */}
@@ -388,6 +415,53 @@ export default function Home() {
           </footer>
         </div>
       </div>
+
+      {/* 升级套餐选择 Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+          <div className="relative bg-white/90 rounded-2xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center"
+            style={{
+              backgroundImage: "url('/Job_Search_Pic.png')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '1px solid #e0e7ef',
+            }}
+          >
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"
+              onClick={() => setShowUpgradeModal(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-bold text-blue-700 mb-4 text-center">Choose Your Plan</h2>
+            <div className="w-full flex flex-col gap-6">
+              <div className="bg-white/90 rounded-lg shadow p-4 flex flex-col items-center">
+                <div className="text-lg font-semibold text-gray-800 mb-2">Option 1: One-time Generation</div>
+                <div className="text-green-600 font-bold text-xl mb-2">$2</div>
+                <div className="text-gray-600 text-sm mb-4">Pay $2 for a single resume analysis</div>
+                <button
+                  onClick={handleUpgradeOneTime}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition"
+                >
+                  Pay $2
+                </button>
+              </div>
+              <div className="bg-white/90 rounded-lg shadow p-4 flex flex-col items-center">
+                <div className="text-lg font-semibold text-gray-800 mb-2">Option 2: Subscription</div>
+                <div className="text-green-600 font-bold text-xl mb-2">$6/month or $15/month</div>
+                <div className="text-gray-600 text-sm mb-4">Subscribe for up to 30 to 180 scans per month. Choose your plan on the Stripe page.</div>
+                <button
+                  onClick={handleUpgradeSubscription}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition"
+                >
+                  Subscribe
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
