@@ -4,6 +4,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const uid = searchParams.get('uid');
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
   // 如果没有 uid，直接返回错误
