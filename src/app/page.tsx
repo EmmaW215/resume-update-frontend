@@ -123,6 +123,9 @@ export default function Home() {
     const formData = new FormData();
     formData.append('job_text', jobText);
     formData.append('resume', resumeFile);
+    if (user) {
+      formData.append('uid', user.uid); // 新增：传递用户ID
+    }
 
     setLoading(true);
     setError('');
