@@ -145,7 +145,7 @@ export default function Home() {
         localStorage.setItem('trialUsed', 'true');
       }
       if (user && !trialUsed) {
-        fetch(`/api/user/use-trial?uid=${user.uid}`, { method: "POST" })
+        await fetch(`${BACKEND_URL}/api/user/use-trial?uid=${user.uid}`, { method: "POST" })
           .then(() => setTrialUsed(true));
       }
 
@@ -185,7 +185,8 @@ export default function Home() {
       alert('Please sign in before upgrading.');
       return;
     }
-    const res = await fetch('/api/create-checkout-session', {
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-matcher-backend-rrrw.onrender.com';
+    const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsdUCznoMxD717tAkMoRd9', mode: 'payment' })
@@ -203,7 +204,8 @@ export default function Home() {
       alert('Please sign in before upgrading.');
       return;
     }
-    const res = await fetch('/api/create-checkout-session', {
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-matcher-backend-rrrw.onrender.com';
+    const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsgyCznoMxD7176oiZ540Z', mode: 'subscription' })
