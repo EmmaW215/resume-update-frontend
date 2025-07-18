@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { searchParams } = new URL(req.url);
-  // const uid = searchParams.get('uid');
-  // TODO: 这里可以对接后端，查询真实 trialUsed 状态
-  // 目前 mock，所有用户都未用过试用
-  return NextResponse.json({ trialUsed: false });
-} 
+  const uid = searchParams.get('uid');
+
+  // 后端 API 地址，优先用环境变量
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+  // 如果没有 uid，直接返回错误
+  if (!uid) {
+    return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
+  }
+
+  // 代理请求到后端
+  const res = await fetch(`https://resume-matcher-backend-rrrw.onrender.com/api/user/trial-status?uid=${uid}`);
+  const data = await res.json();
+
+  return NextResponse.json(data);
+}
