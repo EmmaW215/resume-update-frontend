@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   // 代理请求到后端 trial-status
-  const res = await fetch(`https://resume-matcher-backend-rrrw.onrender.com/api/user/trial-status?uid=${uid}`);
+  const res = await fetch(`${BACKEND_URL}/api/user/trial-status?uid=${uid}`);
   const data = await res.json();
 
   return NextResponse.json(data);
