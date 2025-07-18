@@ -29,6 +29,7 @@ export default function Home() {
   const [selectedPriceId, setSelectedPriceId] = useState('price_2dollar_id');
   // 你需要把 price_2dollar_id, price_6dollar_id, price_15dollar_id 换成你 Stripe 后台实际的 price_id
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isUpgraded, setIsUpgraded] = useState<boolean>(false);
 
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,10 +54,17 @@ export default function Home() {
     if (user) {
       fetch(`/api/user/trial-status?uid=${user.uid}`)
         .then(res => res.json())
-        .then(data => setTrialUsed(data.trialUsed))
-        .catch(() => setTrialUsed(false));
+        .then(data => {
+          setTrialUsed(data.trialUsed);
+          setIsUpgraded(data.isUpgraded); // 新增
+        })
+        .catch(() => {
+          setTrialUsed(false);
+          setIsUpgraded(false);
+        });
     } else {
       setTrialUsed(false);
+      setIsUpgraded(false);
     }
   }, [user]);
 
@@ -88,18 +96,25 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (user && trialUsed) {
-      setResponse(null); // 关键：清空分析结果
-      alert('You have used your free trial. Please sign in and upgrade to continue using MatchWise!');
-      return;
-    }
+    // 未登录用户，检查本地试用
     if (!user) {
       const trialUsedLocal = localStorage.getItem('trialUsed');
       if (trialUsedLocal === 'true') {
-        setResponse(null); // 关键：清空分析结果
-        alert('You have used your free trial. Please sign in to continue using MatchWise for more results!');
+        setResponse(null); // 清空分析结果
+        alert('You have used your free trial. Please sign in and upgrade to continue using MatchWise!');
         return;
       }
+      // 首次试用，允许调用 API
+    }
+
+    // 已登录用户，检查后端试用和升级状态
+    if (user) {
+      if (trialUsed && !isUpgraded) {
+        setResponse(null); // 清空分析结果
+        alert('You have used your free trial. Please upgrade to continue using MatchWise!');
+        return;
+      }
+      // 未用完试用或已升级，允许调用 API
     }
 
     if (!jobText || !resumeFile) {
@@ -108,7 +123,7 @@ export default function Home() {
     }
 
     const formData = new FormData();
-    formData.append('job_text', jobText); // 改为 job_text
+    formData.append('job_text', jobText);
     formData.append('resume', resumeFile);
 
     setLoading(true);
