@@ -93,7 +93,7 @@ export default function Home() {
     inputRef.current?.click();
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
     // 未登录用户，检查本地试用
