@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { searchParams } = new URL(req.url);
   // const uid = searchParams.get('uid');
   // TODO: 这里可以对接后端，查询真实 trialUsed 状态
