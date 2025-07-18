@@ -93,28 +93,26 @@ export default function Home() {
     inputRef.current?.click();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // 未登录用户，检查本地试用
     if (!user) {
       const trialUsedLocal = localStorage.getItem('trialUsed');
       if (trialUsedLocal === 'true') {
-        setResponse(null); // 清空分析结果
+        setResponse(null);
         alert('You have used your free trial. Please sign in and upgrade to continue using MatchWise!');
-        return;
+        return; // 这里 return，绝不调用分析 API
       }
-      // 首次试用，允许调用 API
     }
-
+  
     // 已登录用户，检查后端试用和升级状态
     if (user) {
       if (trialUsed && !isUpgraded) {
-        setResponse(null); // 清空分析结果
+        setResponse(null);
         alert('You have used your free trial. Please upgrade to continue using MatchWise!');
-        return;
+        return; // 这里 return，绝不调用分析 API
       }
-      // 未用完试用或已升级，允许调用 API
     }
 
     if (!jobText || !resumeFile) {
