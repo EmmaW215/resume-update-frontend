@@ -215,7 +215,7 @@ export default function Home() {
     }
   }
 
-  async function handleUpgradeSubscription() {
+  async function handleUpgradeSubscription_6() {
     if (!user) {
       alert('Please sign in before upgrading.');
       return;
@@ -234,7 +234,7 @@ export default function Home() {
     }
   }
 
-  async function handleUpgradeSubscription() {
+  async function handleUpgradeSubscription_15() {
     if (!user) {
       alert('Please sign in before upgrading.');
       return;
@@ -516,7 +516,7 @@ export default function Home() {
                 <div className="text-green-600 font-bold text-xl mb-2">$6/month or $6/month</div>
                 <div className="text-gray-600 text-sm mb-4">Subscribe for up to 30 scans per month. Choose your plan on the Stripe page.</div>
                 <button
-                  onClick={handleUpgradeSubscription}
+                  onClick={handleUpgradeSubscription_6}
                   className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition"
                 >
                   Subscribe Pay $6
@@ -527,7 +527,7 @@ export default function Home() {
                 <div className="text-green-600 font-bold text-xl mb-2">$6/month or $15/month</div>
                 <div className="text-gray-600 text-sm mb-4">Subscribe for up to 180 scans per month. Choose your plan on the Stripe page.</div>
                 <button
-                  onClick={handleUpgradeSubscription}
+                  onClick={handleUpgradeSubscription_15}
                   className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition"
                 >
                   Subscribe Pay $15
