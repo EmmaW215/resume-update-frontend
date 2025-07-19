@@ -34,6 +34,7 @@ export default function Home() {
   const [planType, setPlanType] = useState<string | null>(null);
   const [scanLimit, setScanLimit] = useState<number | null>(null);
   const [scansUsed, setScansUsed] = useState<number>(0);
+  const [userStatusLoading, setUserStatusLoading] = useState(false);
 
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,11 +57,12 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
+      setUserStatusLoading(true);
       fetch(`/api/user/trial-status?uid=${user.uid}`)
         .then(res => res.json())
         .then(data => {
           setTrialUsed(data.trialUsed);
-          setIsUpgraded(data.isUpgraded); // 新增
+          setIsUpgraded(data.isUpgraded);
           setPlanType(data.planType || null);
           setScanLimit(data.scanLimit ?? null);
           setScansUsed(data.scansUsed ?? 0);
@@ -71,13 +73,15 @@ export default function Home() {
           setPlanType(null);
           setScanLimit(null);
           setScansUsed(0);
-        });
+        })
+        .finally(() => setUserStatusLoading(false));
     } else {
       setTrialUsed(false);
       setIsUpgraded(false);
       setPlanType(null);
       setScanLimit(null);
       setScansUsed(0);
+      setUserStatusLoading(false);
     }
   }, [user]);
 
@@ -389,7 +393,7 @@ export default function Home() {
 
 
           {/* Show upgrade message and button for trial-finished users */}
-          {((user && trialUsed && !isUpgraded) || (!user && typeof window !== 'undefined' && localStorage.getItem('trialUsed') === 'true')) && (
+          {!userStatusLoading && ((user && trialUsed && !isUpgraded) || (!user && typeof window !== 'undefined' && localStorage.getItem('trialUsed') === 'true')) && (
             <div className="mb-4 text-center">
               <div className="text-red-600 font-semibold mb-2">
                 Your free trial is finished. Please upgrade to continue using MatchWise!
