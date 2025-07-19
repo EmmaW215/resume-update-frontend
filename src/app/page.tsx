@@ -374,23 +374,28 @@ export default function Home() {
           {/* 在主页面合适位置显示剩余次数，仅对已升级用户显示 */}
           {user && isUpgraded && scanLimit !== null && (
             <div className="mb-2 text-center text-blue-700 font-semibold">
-              本月剩余：{Math.max(scanLimit - scansUsed, 0)} 次
+              Remaining this month: {Math.max(scanLimit - scansUsed, 0)} times
             </div>
           )}
-          {user && isUpgraded && planType === "one_time" && scanLimit !== null && scansUsed >= scanLimit && (
+
+
+          {/* Show upgrade button for logged-in users who have finished their trial but are not upgraded */}
+          {user && trialUsed && !isUpgraded && (
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
             >
-              升级会员
+              Upgrade to continue using MatchWise
             </button>
           )}
-          {user && isUpgraded && (planType === "basic" || planType === "pro") && scanLimit !== null && scansUsed >= scanLimit && (
+
+          {/* Show upgrade button for not-logged-in users who have finished their local trial */}
+          {!user && typeof window !== 'undefined' && localStorage.getItem('trialUsed') === 'true' && (
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
             >
-              升级会员
+              Upgrade to continue using MatchWise
             </button>
           )}
 
