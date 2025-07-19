@@ -1,18 +1,17 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    // After payment success, redirect to main page to refresh user info
     const timer = setTimeout(() => {
       router.replace('/');
-    }, 2000); // 2 seconds delay for user to see the success message
+    }, 2000);
     return () => clearTimeout(timer);
   }, [router]);
 
@@ -22,5 +21,13 @@ export default function SuccessPage() {
       <p className="mb-2">You will be redirected to the main page shortly...</p>
       {sessionId && <p className="text-sm text-gray-500">Session ID: {sessionId}</p>}
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense>
+      <SuccessContent />
+    </Suspense>
   );
 }
