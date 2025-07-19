@@ -30,6 +30,10 @@ export default function Home() {
   // 你需要把 price_2dollar_id, price_6dollar_id, price_15dollar_id 换成你 Stripe 后台实际的 price_id
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isUpgraded, setIsUpgraded] = useState<boolean>(false);
+  // 新增：增加 planType, scanLimit, scansUsed 状态
+  const [planType, setPlanType] = useState<string | null>(null);
+  const [scanLimit, setScanLimit] = useState<number | null>(null);
+  const [scansUsed, setScansUsed] = useState<number>(0);
 
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,14 +61,23 @@ export default function Home() {
         .then(data => {
           setTrialUsed(data.trialUsed);
           setIsUpgraded(data.isUpgraded); // 新增
+          setPlanType(data.planType || null);
+          setScanLimit(data.scanLimit ?? null);
+          setScansUsed(data.scansUsed ?? 0);
         })
         .catch(() => {
           setTrialUsed(false);
           setIsUpgraded(false);
+          setPlanType(null);
+          setScanLimit(null);
+          setScansUsed(0);
         });
     } else {
       setTrialUsed(false);
       setIsUpgraded(false);
+      setPlanType(null);
+      setScanLimit(null);
+      setScansUsed(0);
     }
   }, [user]);
 
@@ -211,6 +224,25 @@ export default function Home() {
     const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsfACznoMxD717hHg11MCS', mode: 'subscription' })
+    });
+    const data = await res.json();
+    if (data.checkout_url) {
+      window.open(data.checkout_url, '_blank'); // 新标签页打开
+    } else {
+      alert('Failed to create checkout session');
+    }
+  }
+
+  async function handleUpgradeSubscription() {
+    if (!user) {
+      alert('Please sign in before upgrading.');
+      return;
+    }
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://resume-matcher-backend-rrrw.onrender.com';
+    const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsgyCznoMxD7176oiZ540Z', mode: 'subscription' })
     });
     const data = await res.json();
@@ -339,12 +371,26 @@ export default function Home() {
           </form>
           
           
-          {user && trialUsed && (
+          {/* 在主页面合适位置显示剩余次数，仅对已升级用户显示 */}
+          {user && isUpgraded && scanLimit !== null && (
+            <div className="mb-2 text-center text-blue-700 font-semibold">
+              本月剩余：{Math.max(scanLimit - scansUsed, 0)} 次
+            </div>
+          )}
+          {user && isUpgraded && planType === "one_time" && scanLimit !== null && scansUsed >= scanLimit && (
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
             >
-              Upgrade to continue using MatchWise
+              升级会员
+            </button>
+          )}
+          {user && isUpgraded && (planType === "basic" || planType === "pro") && scanLimit !== null && scansUsed >= scanLimit && (
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+            >
+              升级会员
             </button>
           )}
 
@@ -437,7 +483,7 @@ export default function Home() {
       {/* 升级套餐选择 Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <div className="relative bg-white/90 rounded-2xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center"
+          <div className="relative bg-white/50 rounded-2xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center"
             style={{
               backgroundImage: "url('/Job_Search_Pic.png')",
               backgroundSize: 'cover',
@@ -466,14 +512,25 @@ export default function Home() {
                 </button>
               </div>
               <div className="bg-white/90 rounded-lg shadow p-4 flex flex-col items-center">
-                <div className="text-lg font-semibold text-gray-800 mb-2">Option 2: Subscription</div>
-                <div className="text-green-600 font-bold text-xl mb-2">$6/month or $15/month</div>
-                <div className="text-gray-600 text-sm mb-4">Subscribe for up to 30 to 180 scans per month. Choose your plan on the Stripe page.</div>
+                <div className="text-lg font-semibold text-gray-800 mb-2">Option 2: Subscription_6</div>
+                <div className="text-green-600 font-bold text-xl mb-2">$6/month or $6/month</div>
+                <div className="text-gray-600 text-sm mb-4">Subscribe for up to 30 scans per month. Choose your plan on the Stripe page.</div>
                 <button
                   onClick={handleUpgradeSubscription}
                   className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition"
                 >
-                  Subscribe
+                  Subscribe Pay $6
+                </button>
+              </div>
+              <div className="bg-white/90 rounded-lg shadow p-4 flex flex-col items-center">
+                <div className="text-lg font-semibold text-gray-800 mb-2">Option 3: Subscription_15</div>
+                <div className="text-green-600 font-bold text-xl mb-2">$6/month or $15/month</div>
+                <div className="text-gray-600 text-sm mb-4">Subscribe for up to 180 scans per month. Choose your plan on the Stripe page.</div>
+                <button
+                  onClick={handleUpgradeSubscription}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition"
+                >
+                  Subscribe Pay $15
                 </button>
               </div>
             </div>
