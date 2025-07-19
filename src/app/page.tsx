@@ -122,10 +122,17 @@ export default function Home() {
   
     // Logged in: check backend trial and upgrade status
     if (user) {
-      if (trialUsed && !isUpgraded) {
+      // If user is upgraded and (scanLimit is null or scansUsed < scanLimit), allow generation
+      if (isUpgraded && (scanLimit === null || scansUsed < scanLimit)) {
+        // allow to proceed
+      } else if (trialUsed && !isUpgraded) {
         setResponse(null);
         setError('Your free trial is finished. Please upgrade to continue using MatchWise!');
         setShowUpgradeModal(true);
+        return; // Do NOT call AI API
+      } else if (isUpgraded && scanLimit !== null && scansUsed >= scanLimit) {
+        setResponse(null);
+        setError('You have reached your monthly scan limit. Please upgrade your plan or wait for next month.');
         return; // Do NOT call AI API
       }
     }
@@ -381,24 +388,19 @@ export default function Home() {
           )}
 
 
-          {/* Show upgrade button for logged-in users who have finished their trial but are not upgraded */}
-          {user && trialUsed && !isUpgraded && (
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
-            >
-              Upgrade to continue using MatchWise
-            </button>
-          )}
-
-          {/* Show upgrade button for not-logged-in users who have finished their local trial */}
-          {!user && typeof window !== 'undefined' && localStorage.getItem('trialUsed') === 'true' && (
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
-            >
-              Upgrade to continue using MatchWise
-            </button>
+          {/* Show upgrade message and button for trial-finished users */}
+          {((user && trialUsed && !isUpgraded) || (!user && typeof window !== 'undefined' && localStorage.getItem('trialUsed') === 'true')) && (
+            <div className="mb-4 text-center">
+              <div className="text-red-600 font-semibold mb-2">
+                Your free trial is finished. Please upgrade to continue using MatchWise!
+              </div>
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+              >
+                Upgrade to continue using MatchWise
+              </button>
+            </div>
           )}
 
           {(response && (!user && !localStorage.getItem('trialUsed') || (user && !trialUsed))) && (
