@@ -109,22 +109,24 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
-    // 未登录用户，检查本地试用
+    // Not logged in: check local trial
     if (!user) {
       const trialUsedLocal = localStorage.getItem('trialUsed');
       if (trialUsedLocal === 'true') {
         setResponse(null);
-        alert('You have used your free trial. Please sign in and upgrade to continue using MatchWise!');
-        return; // 这里 return，绝不调用分析 API
+        setError('Your free trial is finished. Please sign in and upgrade to continue using MatchWise!');
+        setShowUpgradeModal(true);
+        return; // Do NOT call AI API
       }
     }
   
-    // 已登录用户，检查后端试用和升级状态
+    // Logged in: check backend trial and upgrade status
     if (user) {
       if (trialUsed && !isUpgraded) {
         setResponse(null);
-        alert('You have used your free trial. Please upgrade to continue using MatchWise!');
-        return; // 这里 return，绝不调用分析 API
+        setError('Your free trial is finished. Please upgrade to continue using MatchWise!');
+        setShowUpgradeModal(true);
+        return; // Do NOT call AI API
       }
     }
 
@@ -137,7 +139,7 @@ export default function Home() {
     formData.append('job_text', jobText);
     formData.append('resume', resumeFile);
     if (user) {
-      formData.append('uid', user.uid); // 新增：传递用户ID
+      formData.append('uid', user.uid);
     }
 
     setLoading(true);
