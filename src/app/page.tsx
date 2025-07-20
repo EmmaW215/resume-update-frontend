@@ -485,7 +485,14 @@ export default function Home() {
                 {error}
               </div>
               <button
-                onClick={() => setShowUpgradeModal(true)}
+                onClick={() => {
+                  if (!user) {
+                    // 如果用户未登录，先提示登录
+                    alert('Please sign in before upgrading.');
+                    return;
+                  }
+                  setShowUpgradeModal(true);
+                }}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
               >
                 {!user ? 'Sign in & Upgrade' : 'Upgrade to continue using MatchWise'}
