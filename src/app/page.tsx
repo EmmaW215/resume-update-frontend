@@ -289,7 +289,7 @@ export default function Home() {
     signOut(auth);
   }
 
-  const stripePromise = loadStripe('pk_test_51RlrH6CznoMxD717T9LzmtmVSbRwiKiKM1XXIEHFHbbhTM9WXumjxpvkWkwWDfsumqHt1A6mdaf2Be7Xisbfs7xQ005PuaKG2J');
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
   async function handleUpgradeOneTime() {
     if (!user) {
