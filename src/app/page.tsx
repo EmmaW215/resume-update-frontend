@@ -202,10 +202,7 @@ export default function Home() {
       const errorMsg = getErrorMessage();
       setResponse(null);
       setError(errorMsg);
-      if (errorMsg.includes('upgrade') || errorMsg.includes('limit')) {
-        setShowUpgradeModal(true);
-      }
-      return;
+      return; // 只显示错误消息，不自动弹出支付窗口
     }
 
     const formData = new FormData();
