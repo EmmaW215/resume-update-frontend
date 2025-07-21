@@ -5,7 +5,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 
-import SimpleVisitorCounter from './components/SimpleVisitorCounter';
+import VisitorCounter from './components/VisitorCounter';
+// import SimpleVisitorCounter from './components/SimpleVisitorCounter'; // 注释掉
 import { loadStripe } from '@stripe/stripe-js';
 
 interface ComparisonResponse {
@@ -382,7 +383,7 @@ export default function Home() {
         
         {/* Visitor Counter */}
         <div className="absolute top-4 right-4 z-20">
-          <SimpleVisitorCounter />
+          <VisitorCounter />
         </div>
         
         {/* Admin Link */}
