@@ -300,7 +300,7 @@ export default function Home() {
     const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsdUCznoMxD717tAkMoRd9', mode: 'payment' })
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RnBbcE6OOEHr6Zo6igE1U8B', mode: 'payment' })
     });
     const data = await res.json();
     if (data.checkout_url) {
@@ -319,7 +319,7 @@ export default function Home() {
     const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsfACznoMxD717hHg11MCS', mode: 'subscription' })
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RnBehE6OOEHr6Zo4QLLJZTg', mode: 'payment' })
     });
     const data = await res.json();
     if (data.checkout_url) {
@@ -338,7 +338,7 @@ export default function Home() {
     const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RlsgyCznoMxD7176oiZ540Z', mode: 'subscription' })
+      body: new URLSearchParams({ uid: user.uid, price_id: 'price_1RnBgPE6OOEHr6Zo9EFmgyA5', mode: 'subscription' })
     });
     const data = await res.json();
     if (data.checkout_url) {
