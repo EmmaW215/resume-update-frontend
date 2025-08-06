@@ -3,11 +3,15 @@ import { NextResponse } from 'next/server';
 const VISITOR_COUNT_KEY = 'matchwise_visitor_count';
 
 // 尝试导入 Vercel KV，如果失败则使用备用方案
-let kv: any = null;
+let kv: {
+  get: <T>(key: string) => Promise<T | null>;
+  set: (key: string, value: unknown) => Promise<void>;
+} | null = null;
 let useKV = false;
 
 try {
-  const kvModule = require('@vercel/kv');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const kvModule = require('@vercel/kv') as { kv: typeof kv };
   kv = kvModule.kv;
   useKV = true;
   console.log('✅ @vercel/kv loaded successfully');
