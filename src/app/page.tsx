@@ -73,22 +73,53 @@ export default function Home() {
     if (user) {
       console.log('🔄 Loading user status for:', user.uid);
       setUserStatusLoading(true);
-      fetch(`/api/user/status?uid=${user.uid}`)
+      
+      // 添加超时处理
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        console.log('⏰ User status request timeout');
+      }, 10000); // 10秒超时
+      
+      fetch(`/api/user/status?uid=${user.uid}`, {
+        signal: controller.signal
+      })
         .then(res => res.json())
         .then(data => {
           console.log('📊 User status response:', data);
           if (data.error) {
             console.error('❌ Error fetching user status:', data.error);
-            setUserStatus(null);
+            // 即使有错误，也设置一个默认状态，以免按钮一直被禁用
+            setUserStatus({
+              trialUsed: false,
+              isUpgraded: false,
+              planType: null,
+              scanLimit: null,
+              scansUsed: 0,
+              lastScanMonth: new Date().toISOString().slice(0, 7)
+            });
           } else {
             setUserStatus(data);
           }
         })
         .catch((error) => {
-          console.error('❌ Failed to fetch user status:', error);
-          setUserStatus(null);
+          if (error.name === 'AbortError') {
+            console.error('❌ User status request was aborted (timeout)');
+          } else {
+            console.error('❌ Failed to fetch user status:', error);
+          }
+          // 设置默认状态，确保按钮不会被永久禁用
+          setUserStatus({
+            trialUsed: false,
+            isUpgraded: false,
+            planType: null,
+            scanLimit: null,
+            scansUsed: 0,
+            lastScanMonth: new Date().toISOString().slice(0, 7)
+          });
         })
         .finally(() => {
+          clearTimeout(timeoutId);
           console.log('✅ User status loading completed');
           setUserStatusLoading(false);
         });
@@ -189,7 +220,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (!jobText || !resumeFile) {
       alert('Please provide both job description and resume.');
       return;
@@ -371,88 +402,88 @@ export default function Home() {
         </div>
       )}
 
-      <div
-        className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4 relative"
-        style={{
-          backgroundImage: "url('/Job_Search_Pic.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-white" style={{ opacity: 0.7 }} aria-hidden="true"></div>
-        
+    <div
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4 relative"
+      style={{
+        backgroundImage: "url('/Job_Search_Pic.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="absolute inset-0 bg-white" style={{ opacity: 0.7 }} aria-hidden="true"></div>
+      
         {/* Visitor Counter */}
-        <div className="absolute top-4 right-4 z-20">
+      <div className="absolute top-4 right-4 z-20">
           <VisitorCounter />
-        </div>
-        
-        {/* Admin Link */}
-        <div className="absolute top-4 left-4 z-20">
-          <a
-            href="/admin/visitor-stats"
-            className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
-          >
-            Admin
-          </a>
-        </div>
-        
-        <div className="w-full flex flex-col items-center justify-center bg-white/80 rounded-2xl shadow-lg p-4 sm:p-8 max-w-4xl mx-auto relative z-10">
-          <h1 className="text-4xl sm:text-5xl font-bold text-blue-700 mb-2 text-center drop-shadow-md">
-            MatchWise
-          </h1>
-          <h2 className="text-xl sm:text-2xl font-semibold text-blue-600 mb-4 text-center">
-            Tailor Your Resume & Cover Letter with AI
-          </h2>
-          <p className="text-base text-gray-600 mb-8 text-center max-w-xl">
-            An AI-Powered Resume Comparison Platform (RCP), providing intelligent job application assistance by optimizing your resume & cover letter for specific job postings.
-          </p>
+      </div>
+      
+      {/* Admin Link */}
+      <div className="absolute top-4 left-4 z-20">
+        <a
+          href="/admin/visitor-stats"
+          className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          Admin
+        </a>
+      </div>
+      
+      <div className="w-full flex flex-col items-center justify-center bg-white/80 rounded-2xl shadow-lg p-4 sm:p-8 max-w-4xl mx-auto relative z-10">
+        <h1 className="text-4xl sm:text-5xl font-bold text-blue-700 mb-2 text-center drop-shadow-md">
+          MatchWise
+        </h1>
+        <h2 className="text-xl sm:text-2xl font-semibold text-blue-600 mb-4 text-center">
+          Tailor Your Resume & Cover Letter with AI
+        </h2>
+        <p className="text-base text-gray-600 mb-8 text-center max-w-xl">
+          An AI-Powered Resume Comparison Platform (RCP), providing intelligent job application assistance by optimizing your resume & cover letter for specific job postings.
+        </p>
 
-          <form
-            className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 flex flex-col gap-6 border border-gray-100"
-            onSubmit={handleSubmit}
-          >
-            <div>
+        <form
+          className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 flex flex-col gap-6 border border-gray-100"
+          onSubmit={handleSubmit}
+        >
+          <div>
               <label htmlFor="jobText" className="block text-sm font-semibold font-medium text-gray-700 mb-1">
                 Job Description
-              </label>
+            </label>
               <textarea
                 id="jobText"
-                required
+              required
                 value={jobText}
                 onChange={(e) => setJobText(e.target.value)}
                 placeholder="Please paste the full job description here"
                 rows={8}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div
+            className={`w-full border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
+              dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50'
+            }`}
+            onDragEnter={handleDrag}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+            onClick={handleButtonClick}
+          >
+            <input
+              id="resume"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              required
+              ref={inputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <div className="flex flex-col items-center justify-center gap-2">
+              <span className="text-gray-700 font-medium">Upload Resume (PDF or DOCX)</span>
+              <span className="text-xs text-gray-400">Drag & drop or click to select file</span>
+              {resumeFile && <span className="text-green-600 text-sm mt-2">{resumeFile.name}</span>}
             </div>
-            <div
-              className={`w-full border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
-                dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50'
-              }`}
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              onClick={handleButtonClick}
-            >
-              <input
-                id="resume"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                required
-                ref={inputRef}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <div className="flex flex-col items-center justify-center gap-2">
-                <span className="text-gray-700 font-medium">Upload Resume (PDF or DOCX)</span>
-                <span className="text-xs text-gray-400">Drag & drop or click to select file</span>
-                {resumeFile && <span className="text-green-600 text-sm mt-2">{resumeFile.name}</span>}
-              </div>
-            </div>
+          </div>
 
-            {error && <div className="text-red-500 text-sm">{error}</div>}
-            {loading && <div className="text-blue-600 text-sm text-center">Processing your request...</div>}
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {loading && <div className="text-blue-600 text-sm text-center">Processing your request...</div>}
             
             {/* Debug info - remove this in production */}
             {process.env.NODE_ENV === 'development' && (
@@ -463,15 +494,15 @@ export default function Home() {
               </div>
             )}
             
-            <button
-              type="submit"
-              disabled={loading || (user ? userStatusLoading : false)}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Generating...' : 'Generate Comparison'}
-            </button>
-          </form>
-          
+          <button
+            type="submit"
+            disabled={loading || Boolean(user && userStatusLoading)}
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Generating...' : userStatusLoading ? 'Loading...' : 'Generate Comparison'}
+          </button>
+        </form>
+
           {/* Show remaining usage for upgraded users */}
           {user && userStatus && userStatus.isUpgraded && userStatus.scanLimit !== null && !userStatusLoading && (
             <div className="mb-2 text-center text-blue-700 font-semibold">
@@ -502,90 +533,90 @@ export default function Home() {
           )}
 
           {/* Show analysis results */}
-          {response && (
+        {response && (
             <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8 mt-8 border border-blue-100 flex flex-col gap-8 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis Results</h2>
 
-              {/* Job Requirement Summary */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Job Requirement Summary</span>
-                </div>
+            {/* Job Requirement Summary */}
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-blue-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Job Requirement Summary</span>
+              </div>
                 <div className="ml-5"
                   dangerouslySetInnerHTML={{ __html: response.job_summary || 'No job summary available.' }}
                 />
-              </div>
+            </div>
 
-              {/* Resume - Job Posting Comparison */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-purple-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Resume - Job Posting Comparison</span>
-                </div>
-                <div className="ml-5">
+            {/* Resume - Job Posting Comparison */}
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-purple-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Resume - Job Posting Comparison</span>
+              </div>
+              <div className="ml-5">
                      <div className="resume-table-html"
                        dangerouslySetInnerHTML={{ __html: response.resume_summary }}
                      />
+              </div>
+            </div>
+
+            {/* Match Score */}
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-green-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Match Score</span>
+              </div>
+              <div className="flex items-center ml-5 mb-2">
+                <span className="text-3xl font-bold text-green-600 mr-4">{response.match_score || 0}%</span>
+                <div className="flex-1 h-3 bg-gray-200 rounded">
+                  <div
+                    className="h-3 bg-green-500 rounded"
+                    style={{ width: `${response.match_score || 0}%` }}
+                  ></div>
                 </div>
               </div>
+            </div>
 
-              {/* Match Score */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-green-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Match Score</span>
-                </div>
-                <div className="flex items-center ml-5 mb-2">
-                  <span className="text-3xl font-bold text-green-600 mr-4">{response.match_score || 0}%</span>
-                  <div className="flex-1 h-3 bg-gray-200 rounded">
-                    <div
-                      className="h-3 bg-green-500 rounded"
-                      style={{ width: `${response.match_score || 0}%` }}
-                    ></div>
-                  </div>
-                </div>
+            {/* Tailored Resume Summary */}
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-purple-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Tailored Resume Summary</span>
               </div>
-
-              {/* Tailored Resume Summary */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-purple-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Tailored Resume Summary</span>
-                </div>
                 <div className="ml-5"
                   dangerouslySetInnerHTML={{ __html: response.tailored_resume_summary || 'No tailored resume summary available.' }}
                 />
-              </div>
+            </div>
 
-              {/* Tailored Resume Work Experience */}
-              <div className="mb-6">
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-orange-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Tailored Resume Work Experience</span>
-                </div>
+            {/* Tailored Resume Work Experience */}
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-orange-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Tailored Resume Work Experience</span>
+              </div>
                 <div className="ml-5"
                   dangerouslySetInnerHTML={{ __html: response.tailored_work_experience || '<ul><li>No tailored work experience provided.</li></ul>' }}
                 />
-              </div>
+            </div>
 
-              {/* Cover Letter */}
-              <div>
-                <div className="flex items-center mb-2">
-                  <div className="w-1.5 h-7 bg-teal-500 rounded mr-3"></div>
-                  <span className="text-lg font-semibold text-gray-800">Cover Letter</span>
-                </div>
+            {/* Cover Letter */}
+            <div>
+              <div className="flex items-center mb-2">
+                <div className="w-1.5 h-7 bg-teal-500 rounded mr-3"></div>
+                <span className="text-lg font-semibold text-gray-800">Cover Letter</span>
+              </div>
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 ml-5"
                   dangerouslySetInnerHTML={{ __html: response.cover_letter || 'No cover letter available.' }}
                 />
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          <footer className="mt-10 text-gray-400 text-xs text-center">
-            © {new Date().getFullYear()} MatchWise. All rights reserved.
-          </footer>
-        </div>
+        <footer className="mt-10 text-gray-400 text-xs text-center">
+          © {new Date().getFullYear()} MatchWise. All rights reserved.
+        </footer>
+      </div>
       </div>
 
       {/* Upgrade Modal */}

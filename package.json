@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.5.0",
+    "@vercel/kv": "^3.0.0",
     "@vercel/speed-insights": "^1.2.0",
     "firebase": "^11.10.0",
     "next": "^15.3.4",
