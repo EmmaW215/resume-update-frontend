@@ -180,11 +180,27 @@ export default function Home() {
     return '';
   };
 
-  // 检查是否应该显示升级提示（只在用户尝试生成后显示）
+  // 检查是否应该显示升级提示
   const shouldShowUpgradePrompt = () => {
-    // 只有在有错误信息且包含"upgrade"关键词时才显示
-    const errorMsg = getErrorMessage();
-    return errorMsg.includes('upgrade') || errorMsg.includes('limit');
+    if (!user) {
+      // 匿名用户：如果试用已用完，显示升级提示
+      return anonymousTrialUsed;
+    }
+    
+    if (!userStatus) {
+      return false; // 状态未加载时不显示
+    }
+    
+    // 登录用户：试用已用且未升级，或已升级但达到限制
+    if (userStatus.trialUsed && !userStatus.isUpgraded) {
+      return true; // 试用已用且未升级
+    }
+    
+    if (userStatus.isUpgraded && userStatus.scanLimit !== null && userStatus.scansUsed >= userStatus.scanLimit) {
+      return true; // 已升级但达到月度限制
+    }
+    
+    return false;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -484,6 +500,28 @@ export default function Home() {
 
           {error && <div className="text-red-500 text-sm">{error}</div>}
           {loading && <div className="text-blue-600 text-sm text-center">Processing your request...</div>}
+          
+          {/* Show upgrade button when user cannot generate */}
+          {!canGenerate() && shouldShowUpgradePrompt() && (
+            <div className="mb-4 text-center">
+              <div className="text-red-600 font-semibold mb-2">
+                {getErrorMessage()}
+              </div>
+              <button
+                onClick={() => {
+                  if (!user) {
+                    // 如果用户未登录，先提示登录
+                    alert('Please sign in before upgrading.');
+                    return;
+                  }
+                  setShowUpgradeModal(true);
+                }}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition"
+              >
+                {!user ? 'Sign in & Upgrade' : 'Upgrade to continue using MatchWise'}
+              </button>
+            </div>
+          )}
             
             {/* Debug info - remove this in production */}
             {process.env.NODE_ENV === 'development' && (
