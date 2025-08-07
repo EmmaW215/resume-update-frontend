@@ -104,13 +104,27 @@ export async function GET() {
   try {
     const visitorData = await getVisitorCount();
     console.log('✅ GET response:', visitorData);
-    return NextResponse.json(visitorData);
+    
+    const response = NextResponse.json(visitorData);
+    // 添加CORS头部
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return response;
   } catch (error) {
     console.error('❌ GET error:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to get visitor count', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
+    
+    // 即使错误响应也添加CORS头部
+    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return errorResponse;
   }
 }
 
@@ -119,12 +133,38 @@ export async function POST() {
   try {
     const visitorData = await updateVisitorCount();
     console.log('✅ POST response:', visitorData);
-    return NextResponse.json(visitorData);
+    
+    const response = NextResponse.json(visitorData);
+    // 添加CORS头部
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return response;
   } catch (error) {
     console.error('❌ POST error:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to update visitor count', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
+    
+    // 即使错误响应也添加CORS头部
+    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+    errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return errorResponse;
   }
+}
+
+// 添加OPTIONS方法处理预检请求
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 } 
