@@ -25,7 +25,7 @@ export default function VisitorCounter({ className = '' }: VisitorCounterProps) 
         setError('');
         
         // 更新访客计数
-        const response = await fetch('/api/visitor-count', {
+        const response = await fetch('/api/visitor-stats', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
