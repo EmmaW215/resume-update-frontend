@@ -1,67 +1,73 @@
 import { NextResponse } from 'next/server';
+import { kv } from '@vercel/kv';
 
 const VISITOR_COUNT_KEY = 'matchwise_visitor_count';
-
-// 尝试导入 Vercel KV，如果失败则使用备用方案
-let kv: {
-  get: <T>(key: string) => Promise<T | null>;
-  set: (key: string, value: unknown) => Promise<void>;
-} | null = null;
-let useKV = false;
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const kvModule = require('@vercel/kv') as { kv: typeof kv };
-  kv = kvModule.kv;
-  useKV = true;
-  console.log('✅ @vercel/kv loaded successfully');
-} catch (error) {
-  console.log('⚠️ @vercel/kv not available, using fallback:', error);
-  useKV = false;
-}
+const INIT_FLAG_KEY = 'matchwise_init_flag';
 
 interface VisitorData {
   count: number;
   lastUpdated: string;
 }
 
-// 简单的内存存储作为备用方案
-let memoryStorage: VisitorData = {
-  count: 116,
-  lastUpdated: new Date().toISOString()
-};
+// 内存缓存，防止KV临时不可用时丢失计数
+let memoryCache: VisitorData | null = null;
+let lastKVUpdateTime = 0;
 
 async function getVisitorCount(): Promise<VisitorData> {
-  if (useKV && kv) {
-    try {
-      console.log('📡 Attempting to read visitor count from Vercel KV...');
-      const data = await kv.get<VisitorData>(VISITOR_COUNT_KEY);
+  try {
+    console.log('📡 Attempting to read visitor count from Vercel KV...');
+    const data = await kv.get<VisitorData>(VISITOR_COUNT_KEY);
+    
+    if (data) {
+      console.log('✅ Successfully read visitor count from KV:', data);
+      memoryCache = data; // 更新内存缓存
+      lastKVUpdateTime = Date.now();
+      return data;
+    } else {
+      // 检查是否是首次初始化
+      const initFlag = await kv.get(INIT_FLAG_KEY);
       
-      if (data) {
-        console.log('✅ Successfully read visitor count from KV:', data);
-        return data;
-      } else {
-        console.log('⚠️ No visitor count found in KV, creating initial data');
-        // 如果KV中没有数据，返回初始值（设置为116以保持现有计数）
+      if (!initFlag) {
+        // 首次初始化 - 设置为116
+        console.log('🎯 First time initialization, setting count to 116');
         const initialData: VisitorData = {
           count: 116,
           lastUpdated: new Date().toISOString()
         };
         
-        // 将初始数据保存到KV
+        // 设置初始数据和初始化标记
         await kv.set(VISITOR_COUNT_KEY, initialData);
+        await kv.set(INIT_FLAG_KEY, 'initialized');
+        
+        memoryCache = initialData;
+        lastKVUpdateTime = Date.now();
         console.log('✅ Created initial visitor count in KV:', initialData);
         return initialData;
+      } else {
+        // 已经初始化过，但数据丢失 - 使用内存缓存或返回错误
+        console.log('⚠️ Init flag exists but no visitor data found - possible data loss');
+        if (memoryCache && (Date.now() - lastKVUpdateTime < 300000)) { // 5分钟内的缓存有效
+          console.log('📋 Using memory cache:', memoryCache);
+          return memoryCache;
+        } else {
+          // 缓存过期或不存在，这是一个严重问题
+          console.error('❌ Data appears to be lost and no valid cache available');
+          throw new Error('Visitor data lost and no valid backup available');
+        }
       }
-    } catch (error) {
-      console.error('❌ Failed to read from Vercel KV, falling back to memory:', error);
-      useKV = false; // 禁用 KV，改用内存存储
     }
+  } catch (error) {
+    console.error('❌ Failed to read from Vercel KV:', error);
+    
+    // 如果有有效的内存缓存，使用它
+    if (memoryCache && (Date.now() - lastKVUpdateTime < 300000)) { // 5分钟内的缓存有效
+      console.log('📋 KV failed, using memory cache:', memoryCache);
+      return memoryCache;
+    }
+    
+    // 如果没有缓存，这可能是系统问题，抛出错误而不是重置计数器
+    throw new Error(`KV connection failed and no valid cache: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  
-  // 使用内存存储
-  console.log('📁 Using memory storage:', memoryStorage);
-  return memoryStorage;
 }
 
 async function updateVisitorCount(): Promise<VisitorData> {
@@ -74,21 +80,22 @@ async function updateVisitorCount(): Promise<VisitorData> {
   
   console.log('📊 Current count:', currentData.count, '-> New count:', newData.count);
   
-  if (useKV && kv) {
-    try {
-      // 保存到 Vercel KV
-      await kv.set(VISITOR_COUNT_KEY, newData);
-      console.log('✅ Successfully updated visitor count in KV');
-      return newData;
-    } catch (error) {
-      console.error('❌ Failed to write to Vercel KV, falling back to memory:', error);
-      useKV = false; // 禁用 KV，改用内存存储
-    }
+  try {
+    // 保存到 Vercel KV
+    await kv.set(VISITOR_COUNT_KEY, newData);
+    console.log('✅ Successfully updated visitor count in KV');
+    
+    // 更新内存缓存
+    memoryCache = newData;
+    lastKVUpdateTime = Date.now();
+  } catch (error) {
+    console.error('❌ Failed to write to Vercel KV:', error);
+    // 即使KV写入失败，也更新内存缓存
+    memoryCache = newData;
+    lastKVUpdateTime = Date.now();
+    console.log('📋 Updated memory cache despite KV failure');
   }
   
-  // 使用内存存储
-  memoryStorage = newData;
-  console.log('💾 Updated memory storage:', memoryStorage);
   return newData;
 }
 
