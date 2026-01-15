@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 interface VisitorCounterProps {
   className?: string;
+  isVisible?: boolean;
 }
 
 interface VisitorData {
@@ -11,7 +12,7 @@ interface VisitorData {
   lastUpdated: string;
 }
 
-export default function VisitorCounter({ className = '' }: VisitorCounterProps) {
+export default function VisitorCounter({ className = '', isVisible = true }: VisitorCounterProps) {
   const [visitorCount, setVisitorCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -79,6 +80,10 @@ export default function VisitorCounter({ className = '' }: VisitorCounterProps) 
     return num.toString();
   };
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <div className={`flex items-center justify-center space-x-2 ${className}`}>
       <div className="flex items-center space-x-1">
@@ -87,7 +92,7 @@ export default function VisitorCounter({ className = '' }: VisitorCounterProps) 
         }`}></div>
         <span className="text-sm text-gray-600 font-medium">Visitors:</span>
       </div>
-      
+
       {isLoading ? (
         <div className="text-lg font-bold text-blue-600 animate-pulse">
           {retryCount > 0 ? `Retrying...` : `...`}

@@ -6,6 +6,8 @@ import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut 
 import { auth } from "../firebase";
 
 import VisitorCounter from './components/VisitorCounter';
+import LoginModal from './components/LoginModal';
+import { useParentMessage } from './hooks/useParentMessage';
 // import SimpleVisitorCounter from './components/SimpleVisitorCounter'; // 注释掉
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -43,6 +45,11 @@ export default function Home() {
   
   // 匿名用户试用状态（仅用于未登录用户）
   const [anonymousTrialUsed, setAnonymousTrialUsed] = useState(false);
+
+  // SmartSuccess.AI 集成相关状态
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMessage, setLoginMessage] = useState('');
+  const [showVisitorCounter, setShowVisitorCounter] = useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -129,6 +136,19 @@ export default function Home() {
       setUserStatusLoading(false);
     }
   }, [user]);
+
+  // SmartSuccess.AI 集成：处理父页面消息
+  useParentMessage({
+    showLoginModal: (message) => {
+      setShowLoginModal(true);
+      if (message) {
+        setLoginMessage(message);
+      }
+    },
+    hideVisitorCounter: () => {
+      setShowVisitorCounter(false);
+    },
+  });
 
   // 检查用户是否可以生成分析
   const canGenerate = () => {
@@ -414,7 +434,7 @@ export default function Home() {
       
         {/* Visitor Counter */}
       <div className="absolute top-4 right-4 z-20">
-          <VisitorCounter />
+          <VisitorCounter isVisible={showVisitorCounter} />
       </div>
       
       {/* Admin Link */}
@@ -675,6 +695,14 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Login Modal for SmartSuccess.AI integration */}
+      {showLoginModal && (
+        <LoginModal
+          onClose={() => setShowLoginModal(false)}
+          message={loginMessage}
+        />
       )}
     </div>
   );
